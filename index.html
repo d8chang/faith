@@ -209,7 +209,7 @@ details > *:not(summary){margin-top:1rem}
         <li><span><b>Say how much you agree.</b> You get five choices, from strongly disagree to strongly agree. There are no wrong answers, and you can choose Not sure.</span></li>
         <li><span><b>See your result.</b> You get a one-sentence summary, a scale for each question, a chart, the teachers you sound most like, and a point-by-point breakdown.</span></li>
       </ol>
-      <p class="tip">It takes about 6 minutes. Your answers stay on this device, and you can go back and change any of them.</p>
+      <p class="tip">It takes about 6 minutes. Your answers are not recorded or sent to anyone. They stay on this device, and you can go back and change any of them.</p>
       <button class="btn primary big begin" type="button">Start the quiz</button>
     </div>
     <h2>The two questions</h2>
@@ -231,7 +231,6 @@ details > *:not(summary){margin-top:1rem}
         </dl>
       </div>
     </div>
-    <div><button class="btn primary big begin" type="button">Start the quiz</button></div>
   </section>
 
   <section id="quiz" data-part="0" aria-label="Quiz" hidden>
@@ -239,7 +238,7 @@ details > *:not(summary){margin-top:1rem}
       <div class="part" data-p="0"><span class="label">Part 1 · How God saves</span><span class="bar"><i id="bar0"></i></span></div>
       <div class="part" data-p="1"><span class="label">Part 2 · Spiritual gifts</span><span class="bar"><i id="bar1"></i></span></div>
     </div>
-    <p class="tip">Pick the answer closest to what you believe. There are no wrong answers, and you can go back and change any of them.</p>
+    <p class="tip">Pick the answer closest to what you believe and the next statement appears. There are no wrong answers, and you can go back and change any of them.</p>
     <div class="article">
       <p class="label count" id="count"></p>
       <p class="statement" id="statement" aria-live="polite"></p>
@@ -249,7 +248,7 @@ details > *:not(summary){margin-top:1rem}
     <div class="scale" id="scale" role="radiogroup" aria-labelledby="statement"></div>
     <div class="nav">
       <button class="btn" id="back" type="button">Back</button>
-      <button class="btn primary" id="next" type="button">Next</button>
+      <button class="btn primary" id="next" type="button" hidden>See your result</button>
     </div>
     <p class="hint">Press 1 to 5 to answer. The arrow keys move between statements.</p>
   </section>
@@ -471,15 +470,15 @@ function renderQuiz(){
     quiz.querySelector('.part[data-p="'+pp+'"]').classList.toggle("is-on",pp===p);
   });
   back.disabled=st.i===0;
-  var last=st.i===N-1;
-  next.textContent=last?"See your result":"Next";
-  next.disabled=last?!done():st.a[st.i]===null;
+  next.hidden=!done();
 }
 
 function answer(v){
   st.a[st.i]=v; save(); renderQuiz();
   clearTimeout(timer);
-  if(st.i<N-1){var at=st.i; timer=setTimeout(function(){if(st.i===at&&st.view==="quiz") go(1);},260);}
+  var at=st.i;
+  if(at<N-1) timer=setTimeout(function(){if(st.i===at&&st.view==="quiz") go(1);},260);
+  else if(done()) timer=setTimeout(function(){if(st.i===at&&st.view==="quiz") show("results");},260);
 }
 function go(d){
   clearTimeout(timer);
@@ -489,7 +488,7 @@ function go(d){
 }
 Array.prototype.forEach.call(document.querySelectorAll(".begin"),function(b){b.addEventListener("click",function(){show("quiz");});});
 back.addEventListener("click",function(){go(-1);});
-next.addEventListener("click",function(){go(1);});
+next.addEventListener("click",function(){clearTimeout(timer); if(done()) show("results");});
 
 document.addEventListener("keydown",function(e){
   if(st.view!=="quiz"||e.metaKey||e.ctrlKey||e.altKey) return;
