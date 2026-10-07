@@ -60,7 +60,9 @@ h1,h2,h3{font-family:var(--display);font-weight:500;text-wrap:balance;line-heigh
 .steps li{counter-increment:step;display:grid;grid-template-columns:2rem minmax(0,1fr);gap:.75rem;align-items:start}
 .steps li::before{content:counter(step);display:grid;place-items:center;width:2rem;height:2rem;border-radius:50%;border:1.5px solid var(--grace);color:var(--grace);font-family:var(--display);font-size:1.25rem;line-height:1}
 .steps b{font-weight:700}
+.upfront{font-size:1.1rem;font-weight:500;max-width:38rem}
 .btn.big{font-size:1.1rem;padding:.85rem 1.6rem}
+.linkbtn{align-self:flex-start;font:inherit;font-weight:700;color:var(--grace);background:none;border:0;padding:.25rem 0;cursor:pointer;text-decoration:underline;text-underline-offset:.2em}
 
 /* Quiz */
 #quiz,#results{--axis:var(--grace);--axis-soft:var(--grace-soft)}
@@ -196,21 +198,21 @@ details > *:not(summary){margin-top:1rem}
 <body>
 <main class="wrap">
   <header class="mast">
-    <p class="label">A theology quiz · 24 statements · about 6 minutes · no sign-up</p>
+    <p class="label">A theology quiz on salvation and spiritual gifts</p>
     <h1>Faith <em>Compass</em></h1>
+    <button class="linkbtn" id="home" type="button" hidden>&lsaquo; Back to instructions</button>
   </header>
 
   <section id="intro" aria-label="About this quiz">
-    <p class="lede">Explore what you believe about two questions Christians have discussed for centuries: how God saves people, and whether miraculous gifts still happen today. You do not need to know any of the terms beforehand.</p>
     <div class="expect">
       <h2>What to expect</h2>
+      <p class="upfront">Takes about 6 minutes. Your answers are not recorded or sent to anyone.</p>
       <ol class="steps">
-        <li><span><b>Read a statement.</b> There are 24. Each comes with a plain-words version and the Bible passages most often cited for it.</span></li>
-        <li><span><b>Say how much you agree.</b> You get five choices, from strongly disagree to strongly agree. There are no wrong answers, and you can choose Not sure.</span></li>
-        <li><span><b>See your result.</b> You get a one-sentence summary, a scale for each question, a chart, the teachers you sound most like, and a point-by-point breakdown.</span></li>
+        <li><span><b>Read 24 short statements.</b> Each has a plain-words version.</span></li>
+        <li><span><b>Say how much you agree.</b> There are no wrong answers.</span></li>
+        <li><span><b>See your result.</b> A summary, two scales and a chart.</span></li>
       </ol>
-      <p class="tip">It takes about 6 minutes. Your answers are not recorded or sent to anyone. They stay on this device, and you can go back and change any of them.</p>
-      <button class="btn primary big begin" type="button">Start the quiz</button>
+      <div class="actions"><button class="btn primary big begin" type="button">Start the quiz</button><button class="btn big" id="fresh" type="button" hidden>Start over</button></div>
     </div>
     <h2>The two questions</h2>
     <div class="two-q">
@@ -488,6 +490,12 @@ function go(d){
 }
 Array.prototype.forEach.call(document.querySelectorAll(".begin"),function(b){b.addEventListener("click",function(){show("quiz");});});
 back.addEventListener("click",function(){go(-1);});
+$("home").addEventListener("click",function(){clearTimeout(timer); show("intro");});
+var freshArmed=false;
+$("fresh").addEventListener("click",function(){
+  if(!freshArmed){freshArmed=true; this.textContent="Click again to clear your answers"; return;}
+  st.a=st.a.map(function(){return null;}); st.i=0; show("quiz");
+});
 next.addEventListener("click",function(){clearTimeout(timer); if(done()) show("results");});
 
 document.addEventListener("keydown",function(e){
@@ -614,13 +622,19 @@ function renderResults(){
 function show(view,quiet){
   st.view=view; save();
   intro.hidden=view!=="intro"; quiz.hidden=view!=="quiz"; results.hidden=view!=="results";
+  $("home").hidden=view==="intro";
   if(view==="results"){
     renderResults();
     if(!quiet){var hd=$("res-h"); hd.focus({preventScroll:true}); hd.scrollIntoView({block:"start"});}
   }else{
     results.innerHTML="";
     if(view==="quiz"){renderQuiz(); if(!quiet) quiz.scrollIntoView({block:"nearest"});}
-    else{var t=st.a.some(function(v){return v!==null;})?"Continue the quiz":"Start the quiz"; Array.prototype.forEach.call(document.querySelectorAll(".begin"),function(b){b.textContent=t;});}
+    else{
+      var some=st.a.some(function(v){return v!==null;});
+      Array.prototype.forEach.call(document.querySelectorAll(".begin"),function(b){b.textContent=some?"Continue the quiz":"Start the quiz";});
+      freshArmed=false; $("fresh").textContent="Start over"; $("fresh").hidden=!some;
+      if(!quiet) window.scrollTo(0,0);
+    }
   }
 }
 
